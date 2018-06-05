@@ -260,32 +260,36 @@ public class ExpandableTextView extends TextView{
                     indexEndTrimmed = indexEnd;
                 }
 
+                String currentLineText = mOrigText.subSequence(indexStart, indexEndTrimmed).toString();
                 int remainWidth = getValidLayout().getWidth() -
-                        (int) (mTextPaint.measureText(mOrigText.subSequence(indexStart, indexEndTrimmed).toString()) + 0.5);
+                        (int) (mTextPaint.measureText(currentLineText) + 0.5);
                 float widthTailReplaced = mTextPaint.measureText(getContentOfString(mEllipsisHint)
                         + (mShowToExpandHint ? (getContentOfString(mToExpandHint) + getContentOfString(mGapToExpandHint)) : ""));
 
                 int indexEndTrimmedRevised = indexEndTrimmed;
                 if (remainWidth > widthTailReplaced) {
-                   //让按钮尽可能靠最右边走
-                    int extraOffset = 0;
-                    int extraWidth = 0;
-                    String tempText;
-                    while (remainWidth > widthTailReplaced + extraWidth) {
-                        extraOffset++;
-                        if (indexEndTrimmed + extraOffset <= mOrigText.length()) {
-                            tempText = mOrigText.subSequence(indexEndTrimmed, indexEndTrimmed + extraOffset).toString();
-                            extraWidth = (int) (mTextPaint.measureText(tempText) + 0.5);
-                            if (tempText.endsWith("\n")) {
-                                //fix by shenqinci 修复文本中间主动换行导致计算不正确的bug
-                                //（无法提前结束,只根据extraOffset截取，导致text已经包含非本行的text）
+                    //currentLineText 如果已经是单独一行，则不需要处理
+                    if (!currentLineText.endsWith("\n")) {
+                        //让按钮尽可能靠最右边走
+                        int extraOffset = 0;
+                        int extraWidth = 0;
+                        String tempText;
+                        while (remainWidth > widthTailReplaced + extraWidth) {
+                            extraOffset++;
+                            if (indexEndTrimmed + extraOffset <= mOrigText.length()) {
+                                tempText = mOrigText.subSequence(indexEndTrimmed, indexEndTrimmed + extraOffset).toString();
+                                extraWidth = (int) (mTextPaint.measureText(tempText) + 0.5);
+                                if (tempText.endsWith("\n")) {
+                                    //fix by shenqinci 修复文本中间主动换行导致计算不正确的bug
+                                    //（无法提前结束,只根据extraOffset截取，导致text已经包含非本行的text）
+                                    break;
+                                }
+                            } else {
                                 break;
                             }
-                        } else {
-                            break;
                         }
+                        indexEndTrimmedRevised += extraOffset - 1;
                     }
-                    indexEndTrimmedRevised += extraOffset - 1;
                 } else {
                     int extraOffset = 0;
                     int extraWidth = 0;
