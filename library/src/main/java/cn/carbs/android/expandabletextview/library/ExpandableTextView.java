@@ -267,13 +267,20 @@ public class ExpandableTextView extends TextView{
 
                 int indexEndTrimmedRevised = indexEndTrimmed;
                 if (remainWidth > widthTailReplaced) {
+                   //让按钮尽可能靠最右边走
                     int extraOffset = 0;
                     int extraWidth = 0;
+                    String tempText;
                     while (remainWidth > widthTailReplaced + extraWidth) {
                         extraOffset++;
                         if (indexEndTrimmed + extraOffset <= mOrigText.length()) {
-                            extraWidth = (int) (mTextPaint.measureText(
-                                    mOrigText.subSequence(indexEndTrimmed, indexEndTrimmed + extraOffset).toString()) + 0.5);
+                            tempText = mOrigText.subSequence(indexEndTrimmed, indexEndTrimmed + extraOffset).toString();
+                            extraWidth = (int) (mTextPaint.measureText(tempText) + 0.5);
+                            if (tempText.endsWith("\n")) {
+                                //fix by shenqinci 修复文本中间主动换行导致计算不正确的bug
+                                //（无法提前结束,只根据extraOffset截取，导致text已经包含非本行的text）
+                                break;
+                            }
                         } else {
                             break;
                         }
